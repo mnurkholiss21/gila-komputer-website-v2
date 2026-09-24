@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url = "file:./dev.db"
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String @unique
+  products Product[]
+}
+
+model Brand {
+  id Int @id @default(autoincrement())
+  name String @unique
+  products Product[]
+}
+
+model Product {
+  id Int @id @default(autoincrement())
+  name String
+  slug String @unique
+  description String
+  price Int
+  stock Int
+  status String @default("ACTIVE")
+  imageUrl String
+  specs Json // buat simpan {"CPU": "...", "RAM": "..."}
+  categoryId Int
+  brandId Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  category Category @relation(fields: [categoryId], references: [id])
+  brand Brand? @relation(fields: [brandId], references: [id])
+  inventory Inventory?
+  orderItems OrderItem[]
+}
+
+model Inventory {
+  id Int @id @default(autoincrement())
+  productId Int @unique
+  quantity Int @default(0)
+  reserved Int @default(0)
+  updatedAt DateTime @default(now()) @updatedAt
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id             Int         @id @default(autoincrement())
+  orderNumber    String      @unique
+  customerName   String
+  email          String
+  phone          String
+  address        String
+  city           String
+  postalCode     String
+  shippingMethod String
+  shippingFee    Int
+  subtotal       Int
+  total          Int
+  status         String      @default("PENDING")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now()) @updatedAt
+  items          OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  name      String
+  quantity  Int
+  unitPrice Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
